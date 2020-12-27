@@ -20,9 +20,14 @@ Currently it cannot discern between all SoC revisions. Devices will be reported 
 - CPU CGB C
 - CPU CGB D
 - CPU CGB E
-- CPU AGB ?
+- CPU AGB 0/A/A E
+- CPU AGB B/B E
 
 ## Release Notes
+
+v0.3
+
+- Use VRAM reads at the transition from PPU mode 3 to mode 0 discern between devices with CPU AGB 0/A/A E (AGB and GB Player) and CPU AGB B/B E (AGS) revisions
 
 v0.2.2
 
