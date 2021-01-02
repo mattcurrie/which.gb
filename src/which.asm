@@ -18,6 +18,10 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
+IF (__RGBDS_MAJOR__ == 0 && (__RGBDS_MINOR__ < 4 || (__RGBDS_MINOR__ == 4 && __RGBDS_PATCH__ < 2)))
+    FAIL "Requires RGBDS v0.4.2+"
+ENDC
+
 SECTION "lib", ROMX
 INCLUDE "mgblib/src/hardware.inc"
 INCLUDE "mgblib/src/macros.asm"
@@ -66,7 +70,7 @@ main::
     call ResetCursor
     call LoadFont
 
-    print_string_literal "which.gb v0.3\\n-------------\\n\\nseems to be a...\\n\\n"
+    print_string_literal "which.gb v0.3\n-------------\n\nseems to be a...\n\n"
 
     ld a, [wInitialA]
     cp $01
