@@ -58,7 +58,7 @@ SECTION "main", ROM0[$150]
 
 main::
     di
-    ld sp, $cfff
+    ld sp, $ffff
 
     ld [wInitialA], a
     ld a, b
@@ -70,7 +70,7 @@ main::
     call ResetCursor
     call LoadFont
 
-    print_string_literal "which.gb v0.3\n-------------\n\nseems to be a...\n\n"
+    print_string_literal "which.gb v0.4\n-------------\n\nseems to be a...\n\n"
 
     ld a, [wInitialA]
     cp $01
@@ -182,7 +182,16 @@ is_cgbABC::
     jr nz, is_cgbC
 
 is_cgbAB::
-    print_string_literal "CPU CGB A/B"
+    call check_cgb_a_or_b
+    cp $aa
+    jr nz, is_cgbB
+
+is_cgbA::
+    print_string_literal "CPU CGB A"
+    jp done
+
+is_cgbB::
+    print_string_literal "CPU CGB B"
     jp done
 
 is_cgbC::
@@ -322,4 +331,56 @@ check_agb_or_ags::
     ldh [rSCX], a
     pop af
 
+    ret
+
+
+; Check some OAM DMA bus conflict behavior to test if it is a CGB CPU A or B.
+; Code lifted from LIJI32's `dma_write_timing-wram-C0ACA.asm` 
+;
+; @return a `$aa` on CPU CGB A, or `$00` on CPU CGB B
+check_cgb_a_or_b::
+    ld hl, ._HRAMRoutine
+    ld de, HRAMRoutine
+    ld bc, ._HRAMRoutineEnd - ._HRAMRoutine
+    call MemCopy
+
+    ld hl, ._VRAMRoutine
+    ld de, VRAMRoutine
+    ld bc, ._VRAMRoutineEnd - ._VRAMRoutine
+    call MemCopy
+
+    call .ResetWRAM
+    jp VRAMRoutine
+    
+._HRAMRoutine::
+    ld b, $40
+.wait:
+    dec b
+    jr nz, .wait
+    ret
+._HRAMRoutineEnd:
+
+._VRAMRoutine::
+    ld a, $c1
+    ld b, $aa
+    ld hl, $c155
+    ldh [rDMA], a
+    ld [hl], b
+    call HRAMRoutine
+    ld a, [$fe00]
+    ret
+._VRAMRoutineEnd:
+
+HRAMRoutine EQU $ff80
+VRAMRoutine EQU $a000 - (._VRAMRoutineEnd - ._VRAMRoutine)
+    
+.ResetWRAM::
+    ld a, $f0
+    ld [$fe00], a
+    ld hl, $c100
+    ld a, $10
+.loop:
+    ld [hl+], a
+    inc a
+    jr nz, .loop
     ret
